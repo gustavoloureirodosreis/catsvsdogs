@@ -18,9 +18,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     loadModel().then((value) {
-      setState(() {
-
-      });
+      setState(() {});
     });
   }
 
@@ -42,13 +40,35 @@ class _HomeState extends State<Home> {
     await Tflite.loadModel(
       model: 'assets/model_unquant.tflite',
       labels: 'assets/labels.txt',
-    ) ;
+    );
   }
 
   @override
   void dispose() {
     Tflite.close();
     super.dispose();
+  }
+
+  pickImage() async {
+    var image = await picker.getImage(source: ImageSource.camera);
+    if (image == null) return null;
+
+    setState(() {
+      _image = File(image.path);
+    });
+
+    classifyImage(_image);
+  }
+
+  pickGalleryImage() async {
+    var image = await picker.getImage(source: ImageSource.gallery);
+    if (image == null) return null;
+
+    setState(() {
+      _image = File(image.path);
+    });
+
+    classifyImage(_image);
   }
 
   @override
@@ -84,14 +104,34 @@ class _HomeState extends State<Home> {
                         SizedBox(height: 50),
                       ]),
                     )
-                  : Container(),
+                  : Container(
+                      child: Column(
+                        children: <Widget>[
+                          Container(
+                            height: 250,
+                            child: Image.file(_image),
+                          ),
+                          SizedBox(height: 20),
+                          _output != null
+                              ? Text(
+                                  '${_output[0]['label']}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              : Container(),
+                          SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
             ),
             Container(
               width: MediaQuery.of(context).size.width,
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: () {},
+                    onTap: pickImage,
                     child: Container(
                       width: MediaQuery.of(context).size.width - 150,
                       alignment: Alignment.center,
@@ -113,7 +153,7 @@ class _HomeState extends State<Home> {
                   ),
                   SizedBox(height: 10),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: pickGalleryImage,
                     child: Container(
                       width: MediaQuery.of(context).size.width - 150,
                       alignment: Alignment.center,
